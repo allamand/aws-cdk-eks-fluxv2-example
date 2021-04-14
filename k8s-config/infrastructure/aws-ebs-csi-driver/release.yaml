@@ -1,0 +1,23 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: aws-ebs-csi-driver
+  namespace: kube-system
+spec:
+  interval: 1m
+  chart:
+    spec:
+      chart: aws-ebs-csi-driver
+      sourceRef:
+        kind: HelmRepository
+        name: aws-ebs-csi-driver
+        namespace: flux-system
+      interval: 1m
+  values:
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi

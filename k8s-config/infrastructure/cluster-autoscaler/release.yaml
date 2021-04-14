@@ -1,0 +1,57 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: cluster-autoscaler-chart
+  namespace: kube-system
+spec:
+  releaseName: cluster-autoscaler-chart
+  interval: 1m
+  chart:
+    spec:
+      chart: cluster-autoscaler-chart
+      version: '1.1.1'
+      sourceRef:
+        kind: HelmRepository
+        name: autoscaler
+        namespace: flux-system
+      interval: 1m
+  values:
+    autoDiscovery:
+      clusterName: flux
+    tags:
+    - k8s.io/cluster-autoscaler/enabled
+    - k8s.io/cluster-autoscaler/{{ .Values.autoDiscovery.clusterName }}
+    - kubernetes.io/cluster/{{ .Values.autoDiscovery.clusterName }}
+    awsRegion: us-west-2    
+    pspEnabled: true
+    containerSecurityContext:
+    capabilities:
+       drop:
+       - ALL
+    replicaCount: 2
+    resources:
+      limits:
+        cpu: 100m
+        memory: 300Mi
+      requests:
+        cpu: 100m
+        memory: 300Mi
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 1001
+    serviceMonitor:
+      enabled: false
+      interval: 10s
+      namespace: prom
+      selector:
+      release: prometheus-operator
+      path: /metrics
+    image:
+      tag: v1.18.1
+    updateStrategy:
+      rollingUpdate:
+         maxSurge: 1
+         maxUnavailable: 1
+      type: RollingUpdate
+    
